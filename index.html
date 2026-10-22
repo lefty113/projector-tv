@@ -13,8 +13,8 @@ const CONFIG = {
   lat: -2.8759, lon: -39.9216,
   tz: "America/Fortaleza",
   videoList: "https://raw.githubusercontent.com/lefty113/projector-tv/main/videos.json", // written every 6 h by the GitHub Action
-  slideSeconds: { forecast: 35, tides: 25 },  // = 1 min of forecast per round
-  clipsPerRound: 5,       // YouTube clips between forecasts (~5 min)
+  slideSeconds: { forecast: 10 },  // wind forecast slide (tide stays in the side panel)
+  clipsPerRound: 2,       // YouTube clips between forecasts (2 x 60 s = 2 min)
   clipSeconds: 60,        // max length of one clip
   noRepeatMinutes: 90,    // the same section of a video never replays within this time
   quality: "hd1080",
@@ -322,7 +322,7 @@ async function nextClip(){
 }
 
 let current=null,curPlayer=null,queue=[],PREP=null;
-function buildRound(){const r=[{kind:"forecast"},{kind:"tides"}];if(VIDEOS.channels&&VIDEOS.channels.length)for(let k=0;k<CONFIG.clipsPerRound;k++)r.push({kind:"clip"});return r;}
+function buildRound(){const r=[{kind:"forecast"}];if(VIDEOS.channels&&VIDEOS.channels.length)for(let k=0;k<CONFIG.clipsPerRound;k++)r.push({kind:"clip"});return r;}
 function makeData(s){
   const d=document.createElement("div");d.className="slide datasl";
   if(s.kind==="forecast"){d.innerHTML=`<div class="eyebrow">${CONFIG.spotName} · next 3 days</div><h2>Wind forecast</h2><div class="chart"></div>`;drawForecast(d.querySelector(".chart"));}
@@ -356,7 +356,7 @@ async function next(){
 }
 
 /* auto-update: reload when a newer version is published */
-const VERSION="ptv-2026-10-22c";
+const VERSION="ptv-2026-10-22d";
 document.documentElement.style.setProperty("--leftsafe",(CONFIG.leftSafe||0)+"vw");
 async function checkUpdate(){try{const t=await(await fetch(location.pathname+"?v="+Date.now(),{cache:"no-store"})).text();const m=t.match(/const VERSION="([^"]+)"/);if(m&&m[1]!==VERSION)location.replace(location.pathname+"?v="+Date.now()+(FORCE_THEME?"&theme="+FORCE_THEME:""));}catch(e){}}
 checkUpdate();setInterval(checkUpdate,5*60e3);
