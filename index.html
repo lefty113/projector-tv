@@ -296,9 +296,9 @@ async function prepClip(v){
     const end=r=>{if(fin)return;fin=true;clearTimeout(to);if(!r){try{p.destroy();}catch(e){}d.remove();}ok(r);};
     const to=setTimeout(()=>{diag("clip timeout "+v.id);end(null);},CONFIG.loadTimeoutSec*1000);
     p=new YT.Player(d.querySelector(".ytbox div"),{videoId:v.id,width:"100%",height:"100%",
-      playerVars:{autoplay:1,mute:1,controls:0,rel:0,playsinline:1,iv_load_policy:3,disablekb:1,fs:0,modestbranding:1,cc_load_policy:0},
+      playerVars:{autoplay:1,mute:1,controls:0,rel:0,playsinline:1,iv_load_policy:3,disablekb:1,fs:0,modestbranding:1,cc_load_policy:0,hl:"en"},
       events:{
-        onReady:e=>{e.target.mute();try{e.target.setPlaybackQualityRange&&e.target.setPlaybackQualityRange(CONFIG.quality);}catch(x){}e.target.playVideo();},
+        onReady:e=>{e.target.mute();try{e.target.unloadModule("captions");e.target.unloadModule("cc");}catch(x){}try{e.target.setPlaybackQualityRange&&e.target.setPlaybackQualityRange(CONFIG.quality);}catch(x){}e.target.playVideo();},
         onError:e=>{diag("yt error "+e.data+" "+v.id);BAD[v.id]=Date.now()+6*3600e3;end(null);},
         onStateChange:e=>{
           if(fin)return;
@@ -354,7 +354,7 @@ async function next(){
 }
 
 /* auto-update: reload when a newer version is published */
-const VERSION="ptv-2026-10-22a";
+const VERSION="ptv-2026-10-22b";
 document.documentElement.style.setProperty("--leftsafe",(CONFIG.leftSafe||0)+"vw");
 async function checkUpdate(){try{const t=await(await fetch(location.pathname+"?v="+Date.now(),{cache:"no-store"})).text();const m=t.match(/const VERSION="([^"]+)"/);if(m&&m[1]!==VERSION)location.replace(location.pathname+"?v="+Date.now()+(FORCE_THEME?"&theme="+FORCE_THEME:""));}catch(e){}}
 checkUpdate();setInterval(checkUpdate,5*60e3);
