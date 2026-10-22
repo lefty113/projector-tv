@@ -166,7 +166,7 @@ async function loadTide(){
   TIDE={t,h,ext};
 }
 async function loadVideos(){
-  try{const r=await fetch(CONFIG.videoList+"?t="+Date.now(),{cache:"no-store"});if(r.ok)VIDEOS=await r.json();}catch(e){console.warn("video list",e);}
+  try{const r=await fetch(CONFIG.videoList+"?t="+Date.now(),{cache:"no-store"});if(r.ok)VIDEOS=await r.json();dbg("video list: "+(VIDEOS.channels||[]).map(c=>c.videos.length).join("/")+" (http "+r.status+")");}catch(e){console.warn("video list",e);dbg("video list FAILED "+e.message);}
 }
 async function refreshAll(){await Promise.allSettled([loadWeather(),loadTide(),loadVideos()]);renderSide();setTimeout(renderSide,800);$("#upd").textContent="updated "+fmtT(new Date());}
 
@@ -256,7 +256,9 @@ function drawForecast(box){
 /* Rules: forecast + tides (1 min), then CONFIG.clipsPerRound clips of max CONFIG.clipSeconds.
    Channels alternate. The same 60 s section never plays twice within CONFIG.noRepeatMinutes
    (log kept in this browser, survives reboots). Broken / non-embeddable videos are skipped. */
-function diag(m){console.warn(m);const e=document.getElementById("diag");if(e){e.textContent=String(m).slice(0,40);setTimeout(()=>{if(e.textContent===String(m).slice(0,40))e.textContent="";},60000);}}
+const DBG=/[?&]debug/.test(location.search),DLOG=[];function dbg(m){const t=new Date().toLocaleTimeString("en-GB");DLOG.push(t+" "+m);if(DLOG.length>18)DLOG.shift();if(DBG){let o=document.getElementById("dbg");if(!o){o=document.createElement("pre");o.id="dbg";o.style.cssText="position:fixed;left:0;top:0;z-index:99;background:rgba(0,0,0,.85);color:#0f0;font:14px/1.3 monospace;padding:10px;max-width:60vw;white-space:pre-wrap;pointer-events:none";document.body.appendChild(o);}o.textContent=DLOG.join("\n");}}
+window.addEventListener("error",e=>dbg("JS error: "+e.message));
+function diag(m){console.warn(m);dbg("! "+m);const e=document.getElementById("diag");if(e){e.textContent=String(m).slice(0,40);setTimeout(()=>{if(e.textContent===String(m).slice(0,40))e.textContent="";},60000);}}
 const LOGKEY="ptvLog", BAD={};
 let chPtr=0;
 function getLog(){try{return JSON.parse(localStorage.getItem(LOGKEY)||"[]");}catch(e){return [];}}
@@ -287,7 +289,7 @@ function ytApi(){if(!YT_READY)YT_READY=new Promise(ok=>{if(window.YT&&YT.Player)
 
 /* Loads one clip in a hidden slide, seeks to the chosen window and pauses it, ready to show. */
 async function prepClip(v){
-  await ytApi();
+  dbg("prep "+v.ch+" "+v.id);await ytApi();dbg("yt api ok");
   const d=document.createElement("div");d.className="slide yt";
   d.innerHTML=`<div class="ytbox"><div></div></div><div class="cap"><span>${v.ch}</span>${v.title.replace(/</g,"&lt;")}</div>`;
   $("#stage").appendChild(d);
@@ -298,9 +300,9 @@ async function prepClip(v){
     p=new YT.Player(d.querySelector(".ytbox div"),{videoId:v.id,width:"100%",height:"100%",
       playerVars:{autoplay:1,mute:1,controls:0,rel:0,playsinline:1,iv_load_policy:3,disablekb:1,fs:0,modestbranding:1,cc_load_policy:0,hl:"en"},
       events:{
-        onReady:e=>{e.target.mute();try{e.target.unloadModule("captions");e.target.unloadModule("cc");}catch(x){}try{e.target.setPlaybackQualityRange&&e.target.setPlaybackQualityRange(CONFIG.quality);}catch(x){}e.target.playVideo();},
+        onReady:e=>{dbg("ready "+v.id);e.target.mute();try{e.target.unloadModule("captions");e.target.unloadModule("cc");}catch(x){}try{e.target.setPlaybackQualityRange&&e.target.setPlaybackQualityRange(CONFIG.quality);}catch(x){}e.target.playVideo();},
         onError:e=>{diag("yt error "+e.data+" "+v.id);BAD[v.id]=Date.now()+6*3600e3;end(null);},
-        onStateChange:e=>{
+        onStateChange:e=>{dbg("state "+e.data+" t="+Math.round(p.getCurrentTime?p.getCurrentTime():-1));
           if(fin)return;
           if(e.data===YT.PlayerState.PLAYING&&!win){
             const dur=Math.floor(p.getDuration()||0);if(!dur){BAD[v.id]=Date.now()+3600e3;end(null);return;} // live / no length
@@ -341,7 +343,7 @@ async function next(){
   if(s.kind!=="clip"){const d=makeData(s);show(d);const ms=CONFIG.slideSeconds[s.kind]*1000;setTimeout(prepAhead,Math.max(0,ms-12000));setTimeout(next,ms);return;}
   const r=await(PREP||nextClip());PREP=null;
   if(!r){diag("no clip available");queue=queue.filter(x=>x.kind!=="clip");next();return;}
-  const {d,p,v,win}=r;p.playVideo();show(d,p);logPlay(v.id,win[0],win[1]);
+  const {d,p,v,win}=r;dbg("show "+v.id+" "+win[0]+"-"+win[1]);p.playVideo();show(d,p);logPlay(v.id,win[0],win[1]);
   const len=win[1]-win[0];let done=false,last=-1,still=0;
   const go=()=>{if(done)return;done=true;clearInterval(wd);try{p.pauseVideo();}catch(e){}next();};
   const wd=setInterval(()=>{let t=0,st=-1;try{t=p.getCurrentTime();st=p.getPlayerState();}catch(e){}
@@ -354,7 +356,7 @@ async function next(){
 }
 
 /* auto-update: reload when a newer version is published */
-const VERSION="ptv-2026-10-22b";
+const VERSION="ptv-2026-10-22c";
 document.documentElement.style.setProperty("--leftsafe",(CONFIG.leftSafe||0)+"vw");
 async function checkUpdate(){try{const t=await(await fetch(location.pathname+"?v="+Date.now(),{cache:"no-store"})).text();const m=t.match(/const VERSION="([^"]+)"/);if(m&&m[1]!==VERSION)location.replace(location.pathname+"?v="+Date.now()+(FORCE_THEME?"&theme="+FORCE_THEME:""));}catch(e){}}
 checkUpdate();setInterval(checkUpdate,5*60e3);
