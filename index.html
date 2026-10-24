@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Projector TV</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
@@ -13,16 +16,16 @@ const CONFIG = {
   lat: -2.8759, lon: -39.9216,
   tz: "America/Fortaleza",
   videoList: "https://raw.githubusercontent.com/lefty113/projector-tv/main/videos.json", // written every 6 h by the GitHub Action
-  slideSeconds: { forecast: 10 },  // wind forecast slide (tide stays in the side panel)
-  clipsPerRound: 2,       // YouTube clips between forecasts (2 x 60 s = 2 min)
-  clipSeconds: 60,        // max length of one clip
+  videoMinutes: 4.5,      // minutes of YouTube clips between forecasts
+  forecastSeconds: 10,    // wind forecast slide (tide stays in the side panel)
+  clipSeconds: 60,        // length of one clip, then the next video
   noRepeatMinutes: 90,    // the same section of a video never replays within this time
-  quality: "hd1080",
-  loadTimeoutSec: 25,     // skip a clip that won't start within this time
-  stallSec: 20,           // skip a clip frozen this long
+  loadTimeoutSec: 20,     // skip a clip that won't start within this time
+  stallSec: 10,           // skip a clip frozen this long
   leftSafe: 0,            // % of screen width kept empty on the left. 0 = none
   station: 16561,         // Windguru live station (KWind Ilha do Guajiru)
-  refreshMinutes: 15
+  refreshMinutes: 15,
+  updateCheckMinutes: 2   // how often the screen checks GitHub for a new version
 };
 </script>
 <style>
@@ -253,113 +256,143 @@ function drawForecast(box){
 }
 
 /* ---------- YouTube clip rotation ---------- */
-/* Rules: forecast + tides (1 min), then CONFIG.clipsPerRound clips of max CONFIG.clipSeconds.
-   Channels alternate. The same 60 s section never plays twice within CONFIG.noRepeatMinutes
-   (log kept in this browser, survives reboots). Broken / non-embeddable videos are skipped. */
-const DBG=/[?&]debug/.test(location.search),DLOG=[];function dbg(m){const t=new Date().toLocaleTimeString("en-GB");DLOG.push(t+" "+m);if(DLOG.length>18)DLOG.shift();if(DBG){let o=document.getElementById("dbg");if(!o){o=document.createElement("pre");o.id="dbg";o.style.cssText="position:fixed;left:0;top:0;z-index:99;background:rgba(0,0,0,.85);color:#0f0;font:14px/1.3 monospace;padding:10px;max-width:60vw;white-space:pre-wrap;pointer-events:none";document.body.appendChild(o);}o.textContent=DLOG.join("\n");}}
+/* Schedule (time-based): CONFIG.videoMinutes of YouTube clips (each max CONFIG.clipSeconds),
+   then the wind forecast for CONFIG.forecastSeconds, repeat. A failed clip is replaced by
+   another clip straight away — it never falls back to looping the forecast.
+   The same section of a video never replays within CONFIG.noRepeatMinutes (log kept in
+   this browser, survives reboots). Clips are never paused/resumed (that froze on some PCs). */
+const DBG=/[?&]debug/.test(location.search),DLOG=[];
+function dbg(m){const t=new Date().toLocaleTimeString("en-GB");DLOG.push(t+" "+m);if(DLOG.length>18)DLOG.shift();
+  if(DBG){let o=document.getElementById("dbg");if(!o){o=document.createElement("pre");o.id="dbg";o.style.cssText="position:fixed;left:0;top:0;z-index:99;background:rgba(0,0,0,.85);color:#0f0;font:14px/1.3 monospace;padding:10px;max-width:60vw;white-space:pre-wrap;pointer-events:none";document.body.appendChild(o);}o.textContent=DLOG.join("\n");}}
 window.addEventListener("error",e=>dbg("JS error: "+e.message));
 function diag(m){console.warn(m);dbg("! "+m);const e=document.getElementById("diag");if(e){e.textContent=String(m).slice(0,40);setTimeout(()=>{if(e.textContent===String(m).slice(0,40))e.textContent="";},60000);}}
-const LOGKEY="ptvLog", BAD={};
+
+const LOGKEY="ptvLog", BAD={}, DUR={};
 let chPtr=0;
 function getLog(){try{return JSON.parse(localStorage.getItem(LOGKEY)||"[]");}catch(e){return [];}}
 function setLog(l){try{localStorage.setItem(LOGKEY,JSON.stringify(l));}catch(e){}}
-function recentLog(){const cut=Date.now()-CONFIG.noRepeatMinutes*60e3;const l=getLog().filter(x=>x.t>cut);setLog(l);return l;}
+function recentLog(){const cut=Date.now()-CONFIG.noRepeatMinutes*60e3;const l=getLog().filter(x=>x.t>cut&&x.t<=Date.now()+60e3);setLog(l);return l;}
 function logPlay(id,s,e){const l=recentLog();l.push({id,s,e,t:Date.now()});setLog(l);}
-const DUR={}; // video length cache (seconds), learned from the player
+/* pick a fresh window [start,end] (seconds) in a video of length dur, avoiding recently played ones */
 function pickWindow(id,dur){
   const L=CONFIG.clipSeconds,used=recentLog().filter(x=>x.id===id);
   const free=(s,e)=>used.every(u=>e<=u.s||s>=u.e);
-  if(dur<=L+5)return free(0,dur)?[0,dur]:null;
-  const lo=Math.min(8,dur-L),hi=dur-L-2; // skip the first seconds (intros) and the very end
-  for(let k=0;k<30;k++){const s=Math.floor(lo+Math.random()*Math.max(1,hi-lo));if(free(s,s+L))return[s,s+L];}
+  if(dur<=L+5)return free(0,dur)?[0,dur]:null;          // short video: play it whole
+  const lo=Math.min(8,dur-L),hi=dur-L-2;                // skip intro seconds and the very end
+  for(let k=0;k<40;k++){const s=Math.floor(lo+Math.random()*Math.max(1,hi-lo));if(free(s,s+L))return[s,s+L];}
   return null;
 }
-/* candidates for the next clip: channels in turn, least-recently-played video first */
+/* next candidates: channels take turns, least-recently-played video first */
 function candidates(){
   const chs=(VIDEOS.channels||[]).filter(c=>c.videos&&c.videos.length);if(!chs.length)return[];
-  const lastPlayed=id=>Math.max(0,...recentLog().filter(x=>x.id===id).map(x=>x.t));
+  const last={};for(const x of recentLog())last[x.id]=Math.max(last[x.id]||0,x.t);
   const out=[];
-  for(let k=0;k<chs.length;k++){const c=chs[(chPtr+k)%chs.length];
-    const vs=c.videos.filter(v=>!(BAD[v.id]>Date.now())).map(v=>({...v,ch:c.name,ci:(chPtr+k)%chs.length,r:Math.random()}));
-    vs.sort((a,b)=>lastPlayed(a.id)-lastPlayed(b.id)||a.r-b.r);out.push(...vs);}
-  return out;
+  for(let k=0;k<chs.length;k++){const ci=(chPtr+k)%chs.length,c=chs[ci];
+    const vs=c.videos.filter(v=>!(BAD[v.id]>Date.now())&&!(DUR[v.id]&&!pickWindow(v.id,DUR[v.id])))
+      .map(v=>({...v,ch:c.name,ci,r:Math.random()}));
+    vs.sort((a,b)=>(last[a.id]||0)-(last[b.id]||0)||a.r-b.r);out.push(vs);}
+  // interleave channels: best of channel A, best of B, best of C, then 2nd of A ...
+  const res=[];for(let i=0;out.some(a=>a[i]);i++)for(const a of out)if(a[i])res.push(a[i]);
+  return res;
 }
 let YT_READY=null;
-function ytApi(){if(!YT_READY)YT_READY=new Promise(ok=>{if(window.YT&&YT.Player)return ok();window.onYouTubeIframeAPIReady=ok;const s=document.createElement("script");s.src="https://www.youtube.com/iframe_api";document.head.appendChild(s);});return YT_READY;}
+function ytApi(){if(!YT_READY)YT_READY=new Promise((ok,no)=>{if(window.YT&&YT.Player)return ok();window.onYouTubeIframeAPIReady=ok;
+  const s=document.createElement("script");s.src="https://www.youtube.com/iframe_api";s.onerror=()=>{YT_READY=null;no(new Error("YouTube API blocked"));};document.head.appendChild(s);});return YT_READY;}
 
-/* Loads one clip in a hidden slide, seeks to the chosen window and pauses it, ready to show. */
+/* Load one clip in a hidden slide and get it PLAYING at its window start. It keeps playing
+   (muted, hidden) until shown — no pause/resume. Resolves {d,p,v,win} or null. */
 async function prepClip(v){
-  dbg("prep "+v.ch+" "+v.id);await ytApi();dbg("yt api ok");
+  dbg("prep "+v.ch+" "+v.id);
+  try{await ytApi();}catch(e){diag(e.message);return null;}
   const d=document.createElement("div");d.className="slide yt";
   d.innerHTML=`<div class="ytbox"><div></div></div><div class="cap"><span>${v.ch}</span>${v.title.replace(/</g,"&lt;")}</div>`;
   $("#stage").appendChild(d);
   return new Promise(ok=>{
-    let fin=false,win=null,p;
-    const end=r=>{if(fin)return;fin=true;clearTimeout(to);if(!r){try{p.destroy();}catch(e){}d.remove();}ok(r);};
-    const to=setTimeout(()=>{diag("clip timeout "+v.id);end(null);},CONFIG.loadTimeoutSec*1000);
+    let fin=false,win=null,p=null;
+    const end=r=>{if(fin)return;fin=true;clearTimeout(to);if(!r){try{p&&p.destroy();}catch(e){}d.remove();}ok(r);};
+    const to=setTimeout(()=>{diag("load timeout "+v.id);end(null);},CONFIG.loadTimeoutSec*1000);
     p=new YT.Player(d.querySelector(".ytbox div"),{videoId:v.id,width:"100%",height:"100%",
-      playerVars:{autoplay:1,mute:1,controls:0,rel:0,playsinline:1,iv_load_policy:3,disablekb:1,fs:0,modestbranding:1,cc_load_policy:0,hl:"en"},
+      playerVars:{autoplay:1,mute:1,controls:0,rel:0,playsinline:1,iv_load_policy:3,disablekb:1,fs:0,modestbranding:1,cc_load_policy:0},
       events:{
-        onReady:e=>{dbg("ready "+v.id);e.target.mute();try{e.target.unloadModule("captions");e.target.unloadModule("cc");}catch(x){}try{e.target.setPlaybackQualityRange&&e.target.setPlaybackQualityRange(CONFIG.quality);}catch(x){}e.target.playVideo();},
+        onReady:e=>{dbg("ready "+v.id);try{e.target.mute();e.target.unloadModule("captions");e.target.unloadModule("cc");}catch(x){}e.target.playVideo();},
         onError:e=>{diag("yt error "+e.data+" "+v.id);BAD[v.id]=Date.now()+6*3600e3;end(null);},
-        onStateChange:e=>{dbg("state "+e.data+" t="+Math.round(p.getCurrentTime?p.getCurrentTime():-1));
-          if(fin)return;
-          if(e.data===YT.PlayerState.PLAYING&&!win){
-            const dur=Math.floor(p.getDuration()||0);if(!dur){BAD[v.id]=Date.now()+3600e3;end(null);return;} // live / no length
+        onStateChange:e=>{
+          if(fin||e.data!==YT.PlayerState.PLAYING)return;
+          const t=p.getCurrentTime();dbg("playing "+v.id+" t="+Math.round(t));
+          if(!win){
+            const dur=Math.floor(p.getDuration()||0);
+            if(!dur){BAD[v.id]=Date.now()+3600e3;diag("no length "+v.id);end(null);return;}   // live stream etc.
             DUR[v.id]=dur;win=pickWindow(v.id,dur);if(!win){end(null);return;}
-            if(win[0]>2)p.seekTo(win[0],true);else{p.pauseVideo();end({d,p,v,win});}
-          }else if(e.data===YT.PlayerState.PLAYING&&win&&Math.abs(p.getCurrentTime()-win[0])<5){p.pauseVideo();end({d,p,v,win});}
+            if(win[0]>2){p.seekTo(win[0],true);return;}                                 // wait for PLAYING after the seek
+          }
+          if(Math.abs(t-win[0])<6)end({d,p,v,win});
         }}});
   });
 }
-/* Find the next playable clip, trying channels in turn. */
+/* find the next playable clip; tries up to 5 different videos */
 async function nextClip(){
-  for(const v of candidates().slice(0,8)){
-    if(DUR[v.id]&&!pickWindow(v.id,DUR[v.id]))continue; // nothing fresh left in this video
-    const r=await prepClip(v);if(r){chPtr=(r.v.ci+1)%Math.max(1,(VIDEOS.channels||[]).length);return r;}
+  let tries=0;
+  for(const v of candidates()){
+    if(tries++>=5)break;
+    const r=await prepClip(v);
+    if(r){chPtr=(r.v.ci+1)%Math.max(1,(VIDEOS.channels||[]).length);return r;}
   }
   return null;
 }
 
-let current=null,curPlayer=null,queue=[],PREP=null;
-function buildRound(){const r=[{kind:"forecast"}];if(VIDEOS.channels&&VIDEOS.channels.length)for(let k=0;k<CONFIG.clipsPerRound;k++)r.push({kind:"clip"});return r;}
-function makeData(s){
+/* ---------- scheduler ---------- */
+let current=null,curPlayer=null,PREP=null,videoUntil=0,timer=null,watch=null;
+function makeForecast(){
   const d=document.createElement("div");d.className="slide datasl";
-  if(s.kind==="forecast"){d.innerHTML=`<div class="eyebrow">${CONFIG.spotName} · next 3 days</div><h2>Wind forecast</h2><div class="chart"></div>`;drawForecast(d.querySelector(".chart"));}
-  else{d.innerHTML=`<div class="eyebrow">${CONFIG.spotName} · today & tomorrow</div><h2>Tides</h2><div class="chart"></div>`;
-    if(TIDE){const t0=startOfLocalDay(Date.now());d.render=()=>drawTide(d.querySelector(".chart"),t0,t0+2*864e5);}else d.querySelector(".chart").innerHTML='<div class="err">Tide data unavailable</div>';}
-  $("#stage").appendChild(d);if(d.render)d.render();return d;
+  d.innerHTML=`<div class="eyebrow">${CONFIG.spotName} · next 3 days</div><h2>Wind forecast</h2><div class="chart"></div>`;
+  $("#stage").appendChild(d);drawForecast(d.querySelector(".chart"));return d;
 }
 function show(d,player){
   requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add("on")));
-  if(current){const o=current,op=curPlayer;o.classList.remove("on");setTimeout(()=>{try{op&&op.destroy();}catch(e){}o.remove();},1500);}
+  if(current&&current!==d){const o=current,op=curPlayer;o.classList.remove("on");setTimeout(()=>{try{op&&op.destroy();}catch(e){}o.remove();},1500);}
   current=d;curPlayer=player||null;
 }
-/* start preparing the next clip ~12 s before the current slide ends */
-function prepAhead(){if(!queue.length)queue=buildRound();if(queue[0].kind==="clip"&&!PREP)PREP=nextClip();}
-async function next(){
-  if(!queue.length)queue=buildRound();
-  const s=queue.shift();
-  if(s.kind!=="clip"){const d=makeData(s);show(d);const ms=CONFIG.slideSeconds[s.kind]*1000;setTimeout(prepAhead,Math.max(0,ms-12000));setTimeout(next,ms);return;}
-  const r=await(PREP||nextClip());PREP=null;
-  if(!r){diag("no clip available");queue=queue.filter(x=>x.kind!=="clip");next();return;}
-  const {d,p,v,win}=r;dbg("show "+v.id+" "+win[0]+"-"+win[1]);p.playVideo();show(d,p);logPlay(v.id,win[0],win[1]);
-  const len=win[1]-win[0];let done=false,last=-1,still=0;
-  const go=()=>{if(done)return;done=true;clearInterval(wd);try{p.pauseVideo();}catch(e){}next();};
-  const wd=setInterval(()=>{let t=0,st=-1;try{t=p.getCurrentTime();st=p.getPlayerState();}catch(e){}
-    if(t>=win[1]-0.3||st===YT.PlayerState.ENDED){go();return;}
-    if(!PREP&&t>=win[1]-12)prepAhead();
-    if(Math.abs(t-last)<0.05){if(++still>=Math.ceil(CONFIG.stallSec*2))go();}else{still=0;last=t;}
-    if(st===YT.PlayerState.PAUSED&&!done)p.playVideo();
-  },500);
-  setTimeout(go,(len+CONFIG.stallSec+30)*1000); // hard cap (covers ads)
+function startPrep(){if(!PREP)PREP=nextClip();}
+function showForecast(){
+  clearTimeout(timer);clearInterval(watch);
+  dbg("forecast "+CONFIG.forecastSeconds+" s");
+  show(makeForecast());
+  videoUntil=0;                                          // next clip starts a new video block
+  startPrep();                                           // load the first clip while the forecast is up
+  timer=setTimeout(playNext,CONFIG.forecastSeconds*1000);
 }
+async function playNext(){
+  clearTimeout(timer);clearInterval(watch);
+  if(!videoUntil)videoUntil=Date.now()+CONFIG.videoMinutes*60e3;
+  else if(Date.now()>=videoUntil){showForecast();return;}
+  const r=await(PREP||nextClip());PREP=null;
+  if(!r){                                                 // YouTube not working right now: forecast, retry after it
+    diag("no clip available");
+    if(!current||current.classList.contains("yt"))show(makeForecast());
+    timer=setTimeout(playNext,15000);return;
+  }
+  const {d,p,v,win}=r;
+  dbg("show "+v.id+" "+win[0]+"-"+win[1]);
+  try{if(p.getCurrentTime()-win[0]>1.5)p.seekTo(win[0],true);}catch(e){}  // it played hidden for a few s: rewind to the clip start
+  show(d,p);logPlay(v.id,win[0],win[1]);
+  const lastClip=Date.now()+(win[1]-win[0])*1000>=videoUntil;
+  let last=-1,still=0,prepped=false;
+  watch=setInterval(()=>{
+    let t=0,st=-1;try{t=p.getCurrentTime();st=p.getPlayerState();}catch(e){}
+    if(t>=win[1]-0.3||st===YT.PlayerState.ENDED){clearInterval(watch);lastClip?showForecast():playNext();return;}
+    if(!prepped&&!lastClip&&t>=win[1]-12){prepped=true;startPrep();}  // load the next clip 12 s early
+    if(st!==YT.PlayerState.PLAYING&&st!==YT.PlayerState.BUFFERING){try{p.playVideo();}catch(e){}}
+    if(Math.abs(t-last)<0.05){if(++still>=CONFIG.stallSec*2){diag("stalled "+v.id);clearInterval(watch);playNext();}}else{still=0;last=t;}
+  },500);
+  timer=setTimeout(()=>{clearInterval(watch);playNext();},((win[1]-win[0])+CONFIG.stallSec+20)*1000);  // hard cap
+}
+function next(){playNext();}
 
 /* auto-update: reload when a newer version is published */
-const VERSION="ptv-2026-10-22d";
+const VERSION="ptv-2026-10-24a";
 document.documentElement.style.setProperty("--leftsafe",(CONFIG.leftSafe||0)+"vw");
 async function checkUpdate(){try{const t=await(await fetch(location.pathname+"?v="+Date.now(),{cache:"no-store"})).text();const m=t.match(/const VERSION="([^"]+)"/);if(m&&m[1]!==VERSION)location.replace(location.pathname+"?v="+Date.now()+(FORCE_THEME?"&theme="+FORCE_THEME:""));}catch(e){}}
-checkUpdate();setInterval(checkUpdate,5*60e3);
+checkUpdate();setInterval(checkUpdate,CONFIG.updateCheckMinutes*60e3);
 tick();setInterval(tick,10000);
 refreshAll().then(next);
 setInterval(refreshAll,CONFIG.refreshMinutes*60e3);
