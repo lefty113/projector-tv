@@ -7,6 +7,10 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>Projector TV</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
 <script>
@@ -388,8 +392,14 @@ async function playNext(){
 }
 function next(){playNext();}
 
+/* Android / Chrome app mode: installable full screen, keep the screen awake, tap = full screen */
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+let WAKE=null;async function keepAwake(){try{if("wakeLock" in navigator&&document.visibilityState==="visible")WAKE=await navigator.wakeLock.request("screen");}catch(e){}}
+keepAwake();document.addEventListener("visibilitychange",keepAwake);setInterval(()=>{if(!WAKE||WAKE.released)keepAwake();},60e3);
+document.addEventListener("click",()=>{const el=document.documentElement;if(!document.fullscreenElement&&el.requestFullscreen)el.requestFullscreen().catch(()=>{});keepAwake();});
+
 /* auto-update: reload when a newer version is published */
-const VERSION="ptv-2026-10-24a";
+const VERSION="ptv-2026-11-12a";
 document.documentElement.style.setProperty("--leftsafe",(CONFIG.leftSafe||0)+"vw");
 async function checkUpdate(){try{const t=await(await fetch(location.pathname+"?v="+Date.now(),{cache:"no-store"})).text();const m=t.match(/const VERSION="([^"]+)"/);if(m&&m[1]!==VERSION)location.replace(location.pathname+"?v="+Date.now()+(FORCE_THEME?"&theme="+FORCE_THEME:""));}catch(e){}}
 checkUpdate();setInterval(checkUpdate,CONFIG.updateCheckMinutes*60e3);
