@@ -14,6 +14,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
 <script>
+/* compat for old Android WebView (Chrome 66) */
+if(!Promise.allSettled)Promise.allSettled=function(ps){return Promise.all(Array.from(ps,function(p){return Promise.resolve(p).then(function(v){return{status:"fulfilled",value:v};},function(e){return{status:"rejected",reason:e};});}));};
+(function(){var d=document.createElement("div");d.style.cssText="display:flex;flex-direction:column;row-gap:1px;position:absolute";d.appendChild(document.createElement("div"));d.appendChild(document.createElement("div"));document.documentElement.appendChild(d);var ok=d.scrollHeight===1;d.remove();if(!ok)document.documentElement.className+=" nogap";})();
+</script>
+<script>
 /* ======================= CONFIG — edit these ======================= */
 const CONFIG = {
   spotName: "Ilha do Guajiru",
@@ -53,7 +58,7 @@ html,body{height:100%;background:var(--canvas);color:var(--ink);font-family:Inte
 #app{display:grid;grid-template-columns:1fr 26vw;gap:1.6vw;height:100vh;padding:1.6vw 1.6vw 1.6vw calc(1.6vw + var(--leftsafe,0vw))}
 .datasl .eyebrow,.datasl h2{text-align:right}
 #stage{position:relative;border-radius:var(--r);overflow:hidden;background:var(--card);box-shadow:var(--shadow)}
-.slide{position:absolute;inset:0;opacity:0;transform:scale(1.015);transition:opacity 1s ease,transform 1.4s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column}
+.slide{position:absolute;top:0;right:0;bottom:0;left:0;opacity:0;transform:scale(1.015);transition:opacity 1s ease,transform 1.4s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column}
 .slide.on{opacity:1;transform:none}
 .slide img,.slide video{width:100%;height:100%;object-fit:cover}
 .slide iframe{width:100%;height:100%;border:0}
@@ -100,11 +105,12 @@ html,body{height:100%;background:var(--canvas);color:var(--ink);font-family:Inte
 .legend{display:flex;align-items:center;gap:.8vw;margin-top:auto;padding-top:1vw;font-size:1.05vw;font-weight:600;color:var(--ink2)}
 .legend i{display:inline-block;width:2.2vw;height:.7vw;border-radius:99px}
 .err{color:var(--amber);font-size:1.2vw}
-.yt{background:#000}.ytbox{position:absolute;inset:0}.ytbox iframe{width:100%;height:100%;border:0;pointer-events:none}
+.yt{background:#000}.ytbox{position:absolute;top:0;right:0;bottom:0;left:0}.ytbox iframe{width:100%;height:100%;border:0;pointer-events:none}
 .cap{position:absolute;left:1.6vw;bottom:1.4vw;max-width:70%;padding:.6vw 1vw;border-radius:.8vw;background:rgba(0,0,0,.55);color:#fff;font-size:1.25vw;font-weight:600;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cap span{font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-right:.6vw;color:#5AC8FA}
-#full{position:fixed;inset:0;z-index:20;background:#000;opacity:0;transition:opacity 1s ease;pointer-events:none}#full.on{opacity:1}#full .slide video{object-fit:contain;background:#000}
-.ph{position:absolute;inset:0;overflow:hidden;background:#000}.ph img{position:absolute;inset:0;width:100%;height:100%}.ph .bg{object-fit:cover;filter:blur(40px) brightness(.55);transform:scale(1.2)}.ph .fg{object-fit:cover}.ph.portrait .fg{object-fit:contain}.kb{animation:kb 11s ease-out forwards}@keyframes kb{from{transform:scale(1)}to{transform:scale(1.08)}}
+#full{position:fixed;top:0;right:0;bottom:0;left:0;z-index:20;background:#000;opacity:0;transition:opacity 1s ease;pointer-events:none}#full.on{opacity:1}#full .slide video{object-fit:contain;background:#000}
+.ph{position:absolute;top:0;right:0;bottom:0;left:0;overflow:hidden;background:#000}.ph img{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%}.ph .bg{object-fit:cover;filter:blur(40px) brightness(.55);transform:scale(1.2)}.ph .fg{object-fit:cover}.ph.portrait .fg{object-fit:contain}.kb{animation:kb 11s ease-out forwards}@keyframes kb{from{transform:scale(1)}to{transform:scale(1.08)}}
 @media (prefers-reduced-motion: reduce){ .slide{transform:none!important;transition:opacity .6s ease} .kb{animation:none} }
+.nogap #side>*+*{margin-top:1.2vw}.nogap #logos>*+*{margin-left:1vw}.nogap .wind>*+*{margin-left:1.2vw}.nogap .legend>*+*{margin-left:.8vw}
 </style>
 </head>
 <body>
@@ -399,7 +405,7 @@ keepAwake();document.addEventListener("visibilitychange",keepAwake);setInterval(
 document.addEventListener("click",()=>{const el=document.documentElement;if(!document.fullscreenElement&&el.requestFullscreen)el.requestFullscreen().catch(()=>{});keepAwake();});
 
 /* auto-update: reload when a newer version is published */
-const VERSION="ptv-2026-11-12a";
+const VERSION="ptv-2026-11-13a";
 document.documentElement.style.setProperty("--leftsafe",(CONFIG.leftSafe||0)+"vw");
 async function checkUpdate(){try{const t=await(await fetch(location.pathname+"?v="+Date.now(),{cache:"no-store"})).text();const m=t.match(/const VERSION="([^"]+)"/);if(m&&m[1]!==VERSION)location.replace(location.pathname+"?v="+Date.now()+(FORCE_THEME?"&theme="+FORCE_THEME:""));}catch(e){}}
 checkUpdate();setInterval(checkUpdate,CONFIG.updateCheckMinutes*60e3);
