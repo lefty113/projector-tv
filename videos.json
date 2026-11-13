@@ -1,9 +1,258 @@
 {
-  "updated": "2026-10-22T16:02:07.523Z",
+  "updated": "2026-11-13T01:30:16.613Z",
   "channels": [
+    {
+      "key": "epicgust",
+      "name": "Epic Gust",
+      "mode": "shorts",
+      "channelId": "UCm0xsXV9GPCUMMI9S1Y9D_g",
+      "videos": [
+        {
+          "id": "cX4wHgzaJBM",
+          "title": "Bad Kiteboarding Landings? Check Your Takeoff!",
+          "published": ""
+        },
+        {
+          "id": "PAk0ZevTtUg",
+          "title": "Master the Swing Theory for better kitejumps",
+          "published": ""
+        },
+        {
+          "id": "daE3Q2fJtGM",
+          "title": "Mastering Kite Jumps",
+          "published": ""
+        },
+        {
+          "id": "cio0TyEnFQ0",
+          "title": "Mastering Jumping Techniques: Essential Tips for Success",
+          "published": ""
+        },
+        {
+          "id": "GWLcQCn9FxE",
+          "title": "Mastering Kite Landing",
+          "published": ""
+        },
+        {
+          "id": "swP4vq3pKGo",
+          "title": "Mastering Kite Takeoff",
+          "published": ""
+        },
+        {
+          "id": "8cftXGYaWp0",
+          "title": "How to ride upwind in a simple way",
+          "published": ""
+        },
+        {
+          "id": "6Eh2EPLwMz0",
+          "title": "Achieve Full Power on your kite",
+          "published": ""
+        },
+        {
+          "id": "eTzOQBWX8xo",
+          "title": "Kiteboarding Techniques for Power Riding",
+          "published": ""
+        },
+        {
+          "id": "w6kW13rRh84",
+          "title": "What is the right kite size?",
+          "published": ""
+        },
+        {
+          "id": "4G-T-gpr2Uk",
+          "title": "Master Your Kitesurfing Skills: Unlocking Power Through Riding Style",
+          "published": ""
+        },
+        {
+          "id": "RqHrUR6MfNo",
+          "title": "Transforming to Active Riding",
+          "published": ""
+        },
+        {
+          "id": "RtgEcO9h46M",
+          "title": "Mastering Kite Landing - small tip",
+          "published": ""
+        },
+        {
+          "id": "1aR0YV4dfmM",
+          "title": "Choosing the Right Kite Size",
+          "published": ""
+        },
+        {
+          "id": "mHbnGUIDj-E",
+          "title": "Mastering Transitions under 30 mins",
+          "published": ""
+        },
+        {
+          "id": "iOme42GWqA4",
+          "title": "The unfair advantage of a kitesurfer",
+          "published": ""
+        },
+        {
+          "id": "8g-iFeuq-k8",
+          "title": "Mastering Light Winds: Avoid Kite Backstalling",
+          "published": ""
+        },
+        {
+          "id": "cDzbfFi9tx0",
+          "title": "What makes you better than new gear?",
+          "published": ""
+        },
+        {
+          "id": "NuB07IQsmIA",
+          "title": "Best tip for kiters #kiteboarding #kitecamp #travel",
+          "published": ""
+        },
+        {
+          "id": "45e7N73rdsI",
+          "title": "How much did you spend on kite gear? #kiteboarding",
+          "published": ""
+        },
+        {
+          "id": "l1wfoYPb9i8",
+          "title": "Become a kitesurfer by manifesting it. It is easy",
+          "published": ""
+        },
+        {
+          "id": "fg2DebfQLYI",
+          "title": "Dont beat up yourself. Kitesurf like a pro in brazil #kitesurfing #kitecamp",
+          "published": ""
+        },
+        {
+          "id": "tL_FMVWvhSc",
+          "title": "Kiteboarding financial decisions as a dad",
+          "published": ""
+        },
+        {
+          "id": "Z_H7Wob55_0",
+          "title": "What kiteboard to buy?",
+          "published": ""
+        },
+        {
+          "id": "IDQSkh4Qokc",
+          "title": "The kite science you needed",
+          "published": ""
+        },
+        {
+          "id": "WRwg6CV6Gew",
+          "title": "Alone in Brazil? No way! You are coming!",
+          "published": ""
+        },
+        {
+          "id": "MkgWUFfpQa0",
+          "title": "Tick Tack!",
+          "published": ""
+        },
+        {
+          "id": "Lpy-arap6vY",
+          "title": "Scared for your next kite trick??",
+          "published": ""
+        },
+        {
+          "id": "_pYAAxqpTgU",
+          "title": "Kitesurf like Wes Anderson would!",
+          "published": ""
+        },
+        {
+          "id": "pgHjFu2UkPo",
+          "title": "The Kevin Langeree Signature boardoff",
+          "published": ""
+        },
+        {
+          "id": "9jzg_-KBBZ4",
+          "title": "The secret of the boardoff - is not a secret #bigairkiteboarding",
+          "published": ""
+        },
+        {
+          "id": "Rl9Q3WCOh0c",
+          "title": "Unsure? Just chicken out!",
+          "published": ""
+        },
+        {
+          "id": "MZooKXilS3A",
+          "title": "SLS or not SLS?",
+          "published": ""
+        },
+        {
+          "id": "xajwRoP9MDA",
+          "title": "Push the bar away before the jump!",
+          "published": ""
+        },
+        {
+          "id": "S0-GkFZZz64",
+          "title": "Wait till you see IT!",
+          "published": ""
+        },
+        {
+          "id": "X55BDGsmCDY",
+          "title": "My way to the late back kiteloops",
+          "published": ""
+        },
+        {
+          "id": "fEYv6W2JlIg",
+          "title": "The Kitesurfing bullet time",
+          "published": ""
+        },
+        {
+          "id": "jtVNFJR-99A",
+          "title": "Kite jumping nuggets",
+          "published": ""
+        },
+        {
+          "id": "NRR0MIledKY",
+          "title": "Obsessed with your kite gear?",
+          "published": ""
+        },
+        {
+          "id": "VHAQ7mP0PBk",
+          "title": "Kite jump lesson in one minute!",
+          "published": ""
+        },
+        {
+          "id": "IiFP6GAUNOA",
+          "title": "3 KITELOOP CHECKMARKS",
+          "published": ""
+        },
+        {
+          "id": "HkcIJ0A2uA4",
+          "title": "SAFE ROAD TO KITELOOPs",
+          "published": ""
+        },
+        {
+          "id": "5txeooIBBnQ",
+          "title": "Kitesurfer? watch this!",
+          "published": ""
+        },
+        {
+          "id": "iY-ayMxJWp4",
+          "title": "The ONE MINUTE kiteloop lesson",
+          "published": ""
+        },
+        {
+          "id": "Z-mM2daDU5M",
+          "title": "Is it worth it?",
+          "published": ""
+        },
+        {
+          "id": "UC3OUvrAQ2g",
+          "title": "Are you afraid to start kitesurfing?",
+          "published": ""
+        },
+        {
+          "id": "q0cp0vNVA8Q",
+          "title": "It is a priceless feeling",
+          "published": ""
+        },
+        {
+          "id": "vxUSN_TA1mE",
+          "title": "This is almost went wrong!",
+          "published": ""
+        }
+      ]
+    },
     {
       "key": "batevento",
       "name": "Bate Vento",
+      "mode": "all",
       "channelId": "UCuQ_xc3eGmHyEQrkVi4VaUw",
       "videos": [
         {
@@ -41,8 +290,7 @@
           "title": "e6 bate vento kitelesson with epic gust",
           "published": "2023-12-01T16:18:17+00:00"
         }
-      ],
-      "mode": "all"
+      ]
     }
   ]
 }
