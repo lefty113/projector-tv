@@ -55,7 +55,7 @@ html,body,.card,#stage{transition:background-color 1.5s ease,color 1.5s ease}
 :root[data-theme="night"] .lg-n{display:block}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:var(--canvas);color:var(--ink);font-family:Inter,system-ui,sans-serif;overflow:hidden;cursor:none;-webkit-font-smoothing:antialiased}
-#app{display:grid;grid-template-columns:1fr 26vw;gap:1.6vw;height:100vh;padding:1.6vw 1.6vw 1.6vw calc(1.6vw + var(--leftsafe,0vw))}
+#app{display:grid;grid-template-columns:1fr 13vw;gap:1.6vw;height:100vh;padding:1.6vw 1.6vw 1.6vw calc(1.6vw + var(--leftsafe,0vw))}
 .datasl .eyebrow,.datasl h2{text-align:right}
 #stage{position:relative;border-radius:var(--r);overflow:hidden;background:var(--card);box-shadow:var(--shadow)}
 .slide{position:absolute;top:0;right:0;bottom:0;left:0;opacity:0;transform:scale(1.015);transition:opacity 1s ease,transform 1.4s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column}
@@ -67,19 +67,19 @@ html,body{height:100%;background:var(--canvas);color:var(--ink);font-family:Inte
 .datasl h2{font-size:3.4vw;font-weight:700;letter-spacing:-.025em;line-height:1.05;margin:.3vw 0 1.6vw}
 .chart{flex:1;min-height:0;display:flex;flex-direction:column}
 .chart svg{width:100%;height:100%}
-#side{display:flex;flex-direction:column;gap:1.2vw;min-height:0;overflow:hidden}
-.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:1.5vw 1.6vw}
-.lbl{font-size:1.1vw;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);margin-bottom:.5vw}
+#side{display:flex;flex-direction:column;gap:0.6vw;min-height:0;overflow:hidden}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:0.75vw 0.8vw}
+.lbl{font-size:0.8vw;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);margin-bottom:0.25vw}
 #top{display:flex;justify-content:space-between;align-items:flex-start}
 #clock{font-size:4.6vw;font-weight:700;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
 #date{font-size:1.4vw;font-weight:600;color:var(--ink2);margin-top:.5vw}
-#logos{margin:0!important;padding:0!important;border:0!important;display:flex;align-items:center;justify-content:space-between;gap:1vw;margin-bottom:1vw;padding-bottom:1vw;border-bottom:1px solid var(--hair)}#logos img{height:5vw;width:auto;flex:none;max-width:none}
-.wind{display:flex;align-items:center;gap:1.2vw;margin-top:.3vw}
-.big{font-size:5.6vw;font-weight:700;letter-spacing:-.045em;line-height:.9;font-variant-numeric:tabular-nums}
-.big small{font-size:1.8vw;font-weight:700;color:var(--ink2);letter-spacing:0;margin-left:.3vw}
-.meta{font-size:1.4vw;font-weight:600;color:var(--ink2);margin-top:.4vw}
+#logos{margin:0!important;padding:0!important;border:0!important;display:flex;align-items:center;justify-content:space-between;gap:0.5vw;margin-bottom:0.5vw;padding-bottom:0.5vw;border-bottom:1px solid var(--hair)}#logos img{height:2.5vw;width:auto;flex:none;max-width:none}
+.wind{display:flex;align-items:center;gap:0.6vw;margin-top:0.15vw}
+.big{font-size:2.8vw;font-weight:700;letter-spacing:-.045em;line-height:.9;font-variant-numeric:tabular-nums}
+.big small{font-size:0.9vw;font-weight:700;color:var(--ink2);letter-spacing:0;margin-left:0.15vw}
+.meta{font-size:0.8vw;font-weight:600;color:var(--ink2);margin-top:0.2vw}
 .pill{display:inline-block;padding:.25vw .7vw;border-radius:99px;font-size:.85vw;font-weight:600;margin-top:.7vw}
-.arrow{width:4.4vw;height:4.4vw;flex:none}
+.arrow{width:2.2vw;height:2.2vw;flex:none}
 #minitide{flex:1;min-height:0;margin:.2vw -.4vw 0}
 #minitide svg{width:100%;height:100%}
 .tidenext{display:flex;justify-content:space-between;margin-top:.6vw}
@@ -110,12 +110,12 @@ html,body{height:100%;background:var(--canvas);color:var(--ink);font-family:Inte
 #full{position:fixed;top:0;right:0;bottom:0;left:0;z-index:20;background:#000;opacity:0;transition:opacity 1s ease;pointer-events:none}#full.on{opacity:1}#full .slide video{object-fit:contain;background:#000}
 .ph{position:absolute;top:0;right:0;bottom:0;left:0;overflow:hidden;background:#000}.ph img{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%}.ph .bg{object-fit:cover;filter:blur(40px) brightness(.55);transform:scale(1.2)}.ph .fg{object-fit:cover}.ph.portrait .fg{object-fit:contain}.kb{animation:kb 11s ease-out forwards}@keyframes kb{from{transform:scale(1)}to{transform:scale(1.08)}}
 @media (prefers-reduced-motion: reduce){ .slide{transform:none!important;transition:opacity .6s ease} .kb{animation:none} }
-.nogap #side>*+*{margin-top:1.2vw}.nogap #logos>*+*{margin-left:1vw}.nogap .wind>*+*{margin-left:1.2vw}.nogap .legend>*+*{margin-left:.8vw}
-.wword{display:inline-block;margin-top:1vw;padding:.35vw 1vw;border-radius:99px;font-size:1.3vw;font-weight:700}
+.nogap #side>*+*{margin-top:0.6vw}.nogap #logos>*+*{margin-left:0.5vw}.nogap .wind>*+*{margin-left:0.6vw}.nogap .legend>*+*{margin-left:0.4vw}
+.wword{display:inline-block;margin-top:0.5vw;padding:0.175vw 0.5vw;border-radius:99px;font-size:0.8vw;font-weight:700}
 .tidelist{display:flex;flex-direction:column;justify-content:space-around;flex:1}
-.tiderow{display:flex;align-items:baseline;justify-content:space-between;padding:.5vw 0;border-bottom:1px solid var(--hair)}.tiderow:last-child{border-bottom:0}
-.tiderow span{font-size:1.5vw;font-weight:700;color:var(--ink2);text-transform:uppercase;letter-spacing:.06em}
-.tiderow b{font-size:3vw;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.tiderow{display:flex;align-items:baseline;justify-content:space-between;padding:0.25vw 0;border-bottom:1px solid var(--hair)}.tiderow:last-child{border-bottom:0}
+.tiderow span{font-size:0.8vw;font-weight:700;color:var(--ink2);text-transform:uppercase;letter-spacing:.06em}
+.tiderow b{font-size:1.5vw;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
@@ -135,7 +135,7 @@ html,body{height:100%;background:var(--canvas);color:var(--ink);font-family:Inte
       <div class="wword" id="wword">
       </div>
     </div>
-    <div class="card" style="flex:1;min-height:0;display:flex;flex-direction:column">
+    <div class="card">
       <div class="lbl" id="tidelbl">Tides tomorrow</div>
       <div class="tidelist" id="tidelist"></div>
     </div>
@@ -201,7 +201,7 @@ function renderWindNow(){                                 // tomorrow, daytime 0
     const k=H.wind_speed_10m[i],g=H.wind_gusts_10m[i],d=H.wind_direction_10m[i];if(k==null)continue;
     n++;sum+=k;gmax=Math.max(gmax,g||0);sx+=Math.sin(d*Math.PI/180)*k;sy+=Math.cos(d*Math.PI/180)*k;}
   if(!n)return;const k=sum/n,d=(Math.atan2(sx,sy)*180/Math.PI+360)%360,w=windWord(k);
-  $("#spotlbl").textContent="Wind tomorrow · "+new Date(t1+12*3600e3).toLocaleDateString("en-GB",{weekday:"long",timeZone:CONFIG.tz});
+  $("#spotlbl").textContent="Wind tomorrow";
   $("#wnow").innerHTML=Math.round(k)+"<small>kn</small>";
   $("#gnow").textContent=`Gusts ${Math.round(gmax)} kn · from ${compass(d)}`;
   $("#arrowg").setAttribute("transform",`rotate(${d+180})`);
@@ -410,7 +410,7 @@ keepAwake();document.addEventListener("visibilitychange",keepAwake);setInterval(
 document.addEventListener("click",()=>{const el=document.documentElement;if(!document.fullscreenElement&&el.requestFullscreen)el.requestFullscreen().catch(()=>{});keepAwake();});
 
 /* auto-update: reload when a newer version is published */
-const VERSION="ptv-2026-11-13b";
+const VERSION="ptv-2026-11-13c";
 document.documentElement.style.setProperty("--leftsafe",(CONFIG.leftSafe||0)+"vw");
 async function checkUpdate(){try{const t=await(await fetch(location.pathname+"?v="+Date.now(),{cache:"no-store"})).text();const m=t.match(/const VERSION="([^"]+)"/);if(m&&m[1]!==VERSION)location.replace(location.pathname+"?v="+Date.now()+(FORCE_THEME?"&theme="+FORCE_THEME:""));}catch(e){}}
 checkUpdate();setInterval(checkUpdate,CONFIG.updateCheckMinutes*60e3);
